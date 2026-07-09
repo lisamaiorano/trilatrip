@@ -1,7 +1,7 @@
 
 import { useState } from "react"
 
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 import { generateTrip } from "../api/tripApi"
 
@@ -42,6 +42,16 @@ p-10
 max-w-3xl
 mx-auto
 ">
+
+<div className="mb-8 flex items-center justify-between">
+  <Link to="/" className="text-2xl font-bold text-blue-600">
+    TrilaTrip ✈️
+  </Link>
+
+  <Link to="/dashboard" className="rounded-full border border-blue-600 px-5 py-2 text-blue-600">
+    Dashboard
+  </Link>
+</div>
 
 
 <h1 className="

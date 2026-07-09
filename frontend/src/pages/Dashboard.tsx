@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 import {
   Plane,
   Plus,
@@ -27,7 +29,9 @@ function Dashboard(){
       ">
 
 
-        <div className="
+        <Link
+          to="/"
+          className="
           flex
           items-center
           gap-2
@@ -37,22 +41,22 @@ function Dashboard(){
         ">
           <Plane />
           TrilaTrip
-        </div>
+        </Link>
 
 
         <nav className="mt-10 space-y-4">
 
-          <p className="text-gray-600">
+          <Link to="/dashboard" className="block text-gray-600">
             Dashboard
-          </p>
+          </Link>
 
-          <p className="text-gray-600">
+          <Link to="/new-trip" className="block text-gray-600">
             My Trips
-          </p>
+          </Link>
 
-          <p className="text-gray-600">
+          <Link to="/new-trip" className="block text-gray-600">
             Profile
-          </p>
+          </Link>
 
         </nav>
 
@@ -144,18 +148,20 @@ function Dashboard(){
           ">
 
 
-            <TripCard
-              country="China 🇨🇳"
-              days="12 days"
-              budget="€3000"
-            />
+          <TripCard
+            country="China 🇨🇳"
+            days="12 days"
+            budget="€3000"
+            to="/trip-result"
+          />
 
 
-            <TripCard
-              country="Japan 🇯🇵"
-              days="10 days"
-              budget="€2200"
-            />
+          <TripCard
+            country="Japan 🇯🇵"
+            days="10 days"
+            budget="€2200"
+            to="/trip-result"
+          />
 
 
           </div>
@@ -219,11 +225,13 @@ return (
 function TripCard({
  country,
  days,
- budget
+ budget,
+ to
 }:{
  country:string
  days:string
  budget:string
+ to:string
 }){
 
 
@@ -257,7 +265,12 @@ return (
 </p>
 
 
-<button className="
+<Link
+to={to}
+state={{
+  itinerary: `${country} - ${days} - ${budget}`
+}}
+className="
  mt-5
  flex
  items-center
@@ -272,7 +285,7 @@ return (
 <Plus size={18}/>
 View trip
 
-</button>
+</Link>
 
 
 </div>

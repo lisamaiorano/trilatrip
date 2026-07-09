@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react"
-import { useLocation } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import {
   Sparkles,
-  MapPin,
   Calendar
 } from "lucide-react"
 
@@ -11,7 +10,7 @@ function TripResult(){
 
   const location = useLocation()
 
-const trip = location.state
+const trip = location.state as { itinerary?: string } | null
 
   const [loading, setLoading] = useState(true)
 
@@ -44,6 +43,22 @@ const trip = location.state
         max-w-4xl
         mx-auto
       ">
+
+      <div className="mb-8 flex items-center justify-between">
+        <Link to="/" className="text-2xl font-bold text-blue-600">
+          TrilaTrip ✈️
+        </Link>
+
+        <div className="flex gap-3">
+          <Link to="/dashboard" className="rounded-full border border-blue-600 px-5 py-2 text-blue-600">
+            Dashboard
+          </Link>
+
+          <Link to="/new-trip" className="rounded-full bg-blue-600 px-5 py-2 text-white">
+            New trip
+          </Link>
+        </div>
+      </div>
 
 
       {
@@ -99,6 +114,20 @@ const trip = location.state
             ">
               Your AI itinerary ✨
             </h1>
+
+            {trip?.itinerary && (
+              <div className="
+                mt-6
+                bg-white
+                rounded-3xl
+                p-6
+                shadow
+                whitespace-pre-line
+                text-gray-700
+              ">
+                {trip.itinerary}
+              </div>
+            )}
 
 
 

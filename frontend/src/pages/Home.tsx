@@ -1,15 +1,20 @@
+import { Link } from "react-router-dom"
+
 function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
 
       <nav className="flex items-center justify-between px-10 py-6">
-        <h1 className="text-2xl font-bold text-blue-600">
+        <Link to="/" className="text-2xl font-bold text-blue-600">
           TrilaTrip ✈️
-        </h1>
+        </Link>
 
-        <button className="rounded-full border border-blue-600 px-6 py-2 text-blue-600">
+        <Link
+          to="/dashboard"
+          className="rounded-full border border-blue-600 px-6 py-2 text-blue-600"
+        >
           Login
-        </button>
+        </Link>
       </nav>
 
 
@@ -28,9 +33,12 @@ function Home() {
         </p>
 
 
-        <button className="mt-10 rounded-full bg-emerald-500 px-8 py-4 text-white">
+        <Link
+          to="/new-trip"
+          className="mt-10 rounded-full bg-emerald-500 px-8 py-4 text-white"
+        >
           Start planning 🚀
-        </button>
+        </Link>
 
       </main>
 
