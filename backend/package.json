@@ -5,7 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.ts"
+    "dev": "nodemon --exec \"node --loader ts-node/esm\" src/server.ts"
+  },
+  "ts-node": {
+    "esm": true
   },
   "keywords": [],
   "author": "",
@@ -13,8 +16,7 @@
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "openai": "^6.45.0"
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

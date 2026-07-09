@@ -1,387 +1,200 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import type { TripRequest } from "../types/trip";
+import { generateTrip } from "../api/tripApi";
 
-import { useState } from "react"
+import DestinationStep from "../components/trip/DestinationStep";
+import TravelersStep from "../components/trip/TravelersStep";
+import DatesStep from "../components/trip/DatesStep";
+import BudgetStep from "../components/trip/BudgetStep";
+import PreferencesStep from "../components/trip/PreferencesStep";
+import ReviewStep from "../components/trip/ReviewStep";
 
-import { Link, useNavigate } from "react-router-dom"
+const TOTAL_STEPS = 6;
 
-import { generateTrip } from "../api/tripApi"
-
-import {
-  MapPin,
-  Calendar,
-  Wallet,
-  Sparkles
-} from "lucide-react"
-
-type Trip = {
-  destination: string
-  days: string
-  budget: string
-  interests: string[]
-}
-function NewTrip(){
-
-const [trip, setTrip] = useState<Trip>({
-  destination: "",
-  days: "",
-  budget: "",
-  interests: []
-})
-
-const navigate = useNavigate()
-
-return (
-
-<div className="
-min-h-screen
-bg-gray-50
-p-10
-">
-
-
-<div className="
-max-w-3xl
-mx-auto
-">
-
-<div className="mb-8 flex items-center justify-between">
-  <Link to="/" className="text-2xl font-bold text-blue-600">
-    TrilaTrip ✈️
-  </Link>
-
-  <Link to="/dashboard" className="rounded-full border border-blue-600 px-5 py-2 text-blue-600">
-    Dashboard
-  </Link>
-</div>
-
-
-<h1 className="
-text-4xl
-font-bold
-text-gray-900
-">
-
-Create a new trip ✈️
-
-</h1>
-
-
-<p className="
-mt-3
-text-gray-600
-">
-
-Tell us your preferences and let AI
-build your perfect itinerary.
-
-</p>
-
-
-
-<div className="
-mt-10
-bg-white
-rounded-3xl
-p-8
-shadow-sm
-space-y-6
-">
-
-
-
-{/* Destination */}
-
-<div>
-
-<label className="
-flex
-items-center
-gap-2
-font-semibold
-">
-
-<MapPin size={20}/>
-Destination
-
-</label>
-
-
-<input
-
-placeholder="Example: Japan"
-
-value={trip.destination}
-
-onChange={(e)=>
-  setTrip({
-    ...trip,
-    destination:e.target.value
-  })
+function isStepValid(step: number, trip: TripRequest) {
+  switch (step) {
+    case 1:
+      return trip.destination.trim() !== "" && trip.departureCity.trim() !== "";
+    case 3:
+      return trip.startDate !== "" && trip.endDate !== "" && trip.endDate >= trip.startDate;
+    default:
+      return true;
+  }
 }
 
-className="
-mt-3
-w-full
-rounded-xl
-border
-p-4
-outline-none
-focus:ring-2
-focus:ring-blue-500
-"
-
-/>
-
-</div>
-
-
-
-{/* Days */}
-
-<div>
-
-<label className="
-flex
-items-center
-gap-2
-font-semibold
-">
-
-<Calendar size={20}/>
-Days
-
-</label>
-
-
-<input
-
-type="number"
-
-placeholder="10"
-
-value={trip.days}
-
-onChange={(e)=>
-setTrip({
-...trip,
-days:e.target.value
-})
+function countNights(startDate: string, endDate: string) {
+  if (!startDate || !endDate) return 0;
+  const diff = new Date(endDate).getTime() - new Date(startDate).getTime();
+  return Math.max(1, Math.round(diff / (1000 * 60 * 60 * 24)));
 }
 
-className="
-mt-3
-w-full
-rounded-xl
-border
-p-4
-"
+function NewTrip() {
+  const navigate = useNavigate();
 
-/>
+  const [step, setStep] = useState(1);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
 
-</div>
+  const [trip, setTrip] = useState<TripRequest>({
+    destination: "",
+    departureCity: "",
 
+    startDate: "",
+    endDate: "",
 
+    adults: 2,
+    children: 0,
+    childrenAges: [],
 
-{/* Budget */}
+    budget: 0,
+    budgetLevel: "comfort",
 
-<div>
+    accommodation: "hotel",
 
-<label className="
-flex
-items-center
-gap-2
-font-semibold
-">
+    transport: [],
 
-<Wallet size={20}/>
-Budget
+    interests: [],
 
-</label>
+    pace: "balanced",
 
+    foodPreferences: [],
 
-<input
+    accessibility: [],
 
-placeholder="2500 €"
+    tripType: "couple",
 
-value={trip.budget}
+    notes: "",
+  });
 
-onChange={(e)=>
-setTrip({
-...trip,
-budget:e.target.value
-})
+  const canProceed = isStepValid(step, trip);
+
+  async function handleGenerate() {
+    setError("");
+    setGenerating(true);
+
+    try {
+      const result = await generateTrip({
+        destination: trip.destination,
+        departureCity: trip.departureCity,
+        days: countNights(trip.startDate, trip.endDate),
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        adults: trip.adults,
+        children: trip.children,
+        budget: trip.budget,
+        budgetLevel: trip.budgetLevel,
+        accommodation: trip.accommodation,
+        interests: trip.interests,
+        pace: trip.pace,
+        foodPreferences: trip.foodPreferences,
+        accessibility: trip.accessibility,
+        tripType: trip.tripType,
+        notes: trip.notes,
+      });
+
+      navigate("/trip-result", {
+        state: {
+          itinerary: result.itinerary,
+          raw: result.raw,
+          flights: result.flights,
+          hotels: result.hotels,
+        },
+      });
+    } catch {
+      setError("Something went wrong while generating your trip. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function handleNext() {
+    if (step < TOTAL_STEPS) {
+      setStep(step + 1);
+    } else {
+      handleGenerate();
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-10">
+      <div className="mx-auto max-w-3xl">
+        <h1 className="text-5xl font-bold">
+          Create your trip ✈️
+        </h1>
+
+        <p className="mt-3 text-gray-500">
+          Step {step} of {TOTAL_STEPS}
+        </p>
+
+        {/* Progress Bar */}
+        <div className="mt-6 h-2 rounded-full bg-gray-200">
+          <div
+            className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+            style={{
+              width: `${(step / TOTAL_STEPS) * 100}%`,
+            }}
+          />
+        </div>
+
+        {/* Card */}
+        <div className="mt-10 rounded-3xl bg-white p-8 shadow">
+
+          {step === 1 && (
+            <DestinationStep trip={trip} setTrip={setTrip} />
+          )}
+
+          {step === 2 && (
+            <TravelersStep trip={trip} setTrip={setTrip} />
+          )}
+
+          {step === 3 && (
+            <DatesStep trip={trip} setTrip={setTrip} />
+          )}
+
+          {step === 4 && (
+            <BudgetStep trip={trip} setTrip={setTrip} />
+          )}
+
+          {step === 5 && (
+            <PreferencesStep trip={trip} setTrip={setTrip} />
+          )}
+
+          {step === 6 && (
+            <ReviewStep trip={trip} />
+          )}
+
+          {error && (
+            <p className="mt-6 rounded-xl bg-red-50 p-4 text-red-600">
+              {error}
+            </p>
+          )}
+
+          {/* Navigation */}
+
+          <div className="mt-10 flex justify-between">
+
+            <button
+              disabled={step === 1 || generating}
+              onClick={() => setStep(step - 1)}
+              className="rounded-xl border px-8 py-4 disabled:opacity-40"
+            >
+              Back
+            </button>
+
+            <button
+              disabled={!canProceed || generating}
+              onClick={handleNext}
+              className="rounded-xl bg-blue-600 px-8 py-4 font-semibold text-white hover:bg-blue-700 disabled:opacity-40"
+            >
+              {generating ? "Generating..." : step === TOTAL_STEPS ? "Generate Trip 🚀" : "Next →"}
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-className="
-mt-3
-w-full
-rounded-xl
-border
-p-4
-"
-
-/>
-
-</div>
-
-
-
-{/* Interests */}
-
-<div>
-
-<h3 className="
-font-semibold
-">
-
-Your interests
-
-</h3>
-
-
-<div className="
-grid
-grid-cols-2
-gap-3
-mt-4
-">
-
-
-{
-[
-"Nature 🌲",
-"Food 🍜",
-"Culture 🏛️",
-"Adventure 🏔️",
-"Nightlife 🌙",
-"Relax 🏖️"
-].map((item)=>(
-
-<label
-key={item}
-className="
-border
-rounded-xl
-p-3
-cursor-pointer
-hover:bg-blue-50
-"
->
-
-<input
-
-type="checkbox"
-
-onChange={(e)=>{
-
-const selected=item
-
-if(e.target.checked){
-
-setTrip({
-...trip,
-interests:[
-...trip.interests,
-selected
-]
-})
-
-}
-
-else{
-
-setTrip({
-...trip,
-interests:
-trip.interests.filter(
-(i)=>i!==selected
-)
-})
-
-}
-
-}}
-
-/>
-
-{item}
-
-</label>
-
-))
-
-}
-
-
-</div>
-
-</div>
-
-
-
-<button 
-
-onClick={async()=>{
-
-
-try {
-
-
-const result = await generateTrip(trip)
-
-
-console.log(result)
-
-
-navigate("/trip-result",{
-state:result
-})
-
-
-}
-catch(error){
-
-console.log(error)
-
-}
-
-
-}}
-
-className="
-mt-6
-flex
-items-center
-justify-center
-gap-2
-w-full
-rounded-xl
-bg-blue-600
-py-4
-text-white
-font-semibold
-hover:bg-blue-700
-transition
-">
-
-<Sparkles/>
-
-Generate my trip
-
-</button>
-
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-)
-
-}
-
-
-export default NewTrip
+export default NewTrip;
